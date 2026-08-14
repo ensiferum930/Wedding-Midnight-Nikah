@@ -1642,3 +1642,47 @@ body.mn-date-unlocked .mn-scratch-card {
   45% { box-shadow: 0 18px 50px rgba(0,0,0,.3), 0 0 45px rgba(215,181,109,.34); }
   100% { box-shadow: 0 18px 50px rgba(0,0,0,.3), 0 0 25px rgba(215,181,109,.08); }
 }
+
+/* ============================================================
+   SCRATCH CARD — TOUCH / MOUSE RELIABILITY
+   ============================================================ */
+.mn-scratch-card {
+  isolation: isolate;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+#mn-scratch-canvas {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: none !important;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+#mn-scratch-canvas:active {
+  cursor: grabbing;
+}
+
+.mn-scratch-overlay {
+  z-index: 7;
+  pointer-events: none !important;
+}
+
+.mn-scratch-reveal {
+  z-index: 1;
+}
+
+/* Keep the scratch card itself visible while the revealed date/countdown
+   remain locked until the scratch threshold is reached. */
+.mn-scratch-card.is-revealed #mn-scratch-canvas {
+  opacity: 0;
+  transition: opacity .8s ease;
+}

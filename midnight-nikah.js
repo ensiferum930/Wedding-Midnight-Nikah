@@ -44,6 +44,29 @@
     window.setInterval(createFloatingItem, 260);
   }
 
+  function startMusicAfterCurtain() {
+    if (!audio || !audio.querySelector("source")) return;
+
+    audio.volume = 0;
+    audio.currentTime = 0;
+
+    const playPromise = audio.play();
+    if (playPromise && typeof playPromise.then === "function") {
+      playPromise.then(function () {
+        musicPlaying = true;
+        if (musicButton) {
+          musicButton.classList.add("is-visible", "is-playing");
+          musicButton.textContent = "♫";
+        }
+        fadeAudioIn(audio, 3200, 0.55);
+      }).catch(function () {
+        // The click on OPEN INVITATION is a user gesture. If the browser
+        // still blocks playback, the music button remains available.
+        if (musicButton) musicButton.classList.add("is-visible");
+      });
+    }
+  }
+
   function openCurtainGate() {
     if (gateOpened) return;
     gateOpened = true;
@@ -51,6 +74,10 @@
     curtainGate.classList.add("is-open");
     document.body.classList.add("mn-floral-active");
     startFloralRain();
+
+    // Music starts from the OPEN INVITATION click, immediately after
+    // the initial curtain is opened — not after SHOW INVITATION.
+    startMusicAfterCurtain();
 
     window.setTimeout(function () {
       curtainGate.classList.add("is-gone");
@@ -72,19 +99,7 @@
       window.scrollTo({ top: 0, behavior: "auto" });
     }, 650);
 
-    if (audio && audio.querySelector("source")) {
-      audio.volume = 0;
-      audio.currentTime = 0;
-      const playPromise = audio.play();
-      if (playPromise && typeof playPromise.catch === "function") {
-        playPromise.then(function () {
-          musicPlaying = true;
-          musicButton.classList.add("is-playing");
-          musicButton.textContent = "♫";
-          fadeAudioIn(audio, 3500, 0.55);
-        }).catch(function () {});
-      }
-    }
+
   }
 
   if (openButton) openButton.addEventListener("click", openInvitation);
@@ -353,48 +368,85 @@
     const ctx = scratchCanvas.getContext("2d", { willReadFrequently: true });
     let scratching = false;
     let revealed = false;
+    let lastCheck = 0;
 
     function sizeScratchCanvas() {
       const rect = scratchCard.getBoundingClientRect();
+      if (!rect.width || !rect.height) return;
+
       const ratio = Math.min(window.devicePixelRatio || 1, 2);
-      scratchCanvas.width = rect.width * ratio;
-      scratchCanvas.height = rect.height * ratio;
+      scratchCanvas.width = Math.round(rect.width * ratio);
+      scratchCanvas.height = Math.round(rect.height * ratio);
       scratchCanvas.style.width = rect.width + "px";
       scratchCanvas.style.height = rect.height + "px";
+
       ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
       ctx.globalCompositeOperation = "source-over";
+      ctx.clearRect(0, 0, rect.width, rect.height);
+
       const gradient = ctx.createLinearGradient(0, 0, rect.width, rect.height);
-      gradient.addColorStop(0, "#8f6b2d");
-      gradient.addColorStop(.45, "#d7b56d");
-      gradient.addColorStop(1, "#6e4d1d");
+      gradient.addColorStop(0, "#7d5b25");
+      gradient.addColorStop(.28, "#c39b50");
+      gradient.addColorStop(.5, "#f0d48b");
+      gradient.addColorStop(.72, "#b58a43");
+      gradient.addColorStop(1, "#65461a");
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, rect.width, rect.height);
-      ctx.fillStyle = "rgba(255,255,255,.16)";
-      for (let i = 0; i < 55; i++) {
-        ctx.fillRect(Math.random() * rect.width, Math.random() * rect.height, 1.2, 1.2);
+
+      // Foil grain / tiny flecks.
+      for (let i = 0; i < 240; i++) {
+        const alpha = 0.04 + Math.random() * 0.12;
+        ctx.fillStyle = "rgba(255,255,255," + alpha + ")";
+        const size = Math.random() > .85 ? 1.8 : .8;
+        ctx.fillRect(Math.random() * rect.width, Math.random() * rect.height, size, size);
       }
+
+      // Subtle embossed border.
+      ctx.strokeStyle = "rgba(255,245,205,.42)";
+      ctx.lineWidth = 1;
+      ctx.strokeRect(14, 14, rect.width - 28, rect.height - 28);
+
       ctx.globalCompositeOperation = "destination-out";
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.lineWidth = 42;
+    }
+
+    function getPoint(event) {
+      const rect = scratchCanvas.getBoundingClientRect();
+      return {
+        x: event.clientX - rect.left,
+        y: event.clientY - rect.top
+      };
     }
 
     function scratchAt(event) {
-      const rect = scratchCanvas.getBoundingClientRect();
-      const point = event.touches ? event.touches[0] : event;
-      const x = point.clientX - rect.left;
-      const y = point.clientY - rect.top;
+      if (revealed) return;
+      const point = getPoint(event);
       ctx.beginPath();
-      ctx.arc(x, y, 23, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.moveTo(point.x, point.y);
+      ctx.lineTo(point.x + 0.01, point.y + 0.01);
+      ctx.stroke();
     }
 
-    function checkScratch() {
+    function checkScratch(force) {
       if (revealed) return;
+      const now = performance.now();
+      if (!force && now - lastCheck < 120) return;
+      lastCheck = now;
+
       const pixels = ctx.getImageData(0, 0, scratchCanvas.width, scratchCanvas.height).data;
       let transparent = 0;
-      for (let i = 3; i < pixels.length; i += 32) {
-        if (pixels[i] < 40) transparent++;
+      let sampled = 0;
+
+      // Sample every 16th pixel for a fast but reliable coverage estimate.
+      for (let i = 3; i < pixels.length; i += 16) {
+        sampled++;
+        if (pixels[i] < 80) transparent++;
       }
-      const total = pixels.length / 32;
-      if (transparent / total > 0.48) {
+
+      const scratched = transparent / Math.max(sampled, 1);
+      if (scratched >= 0.34) {
         revealed = true;
         scratchCard.classList.add("is-revealed");
         document.body.classList.add("mn-date-unlocked");
@@ -402,24 +454,55 @@
       }
     }
 
-    scratchCanvas.addEventListener("pointerdown", function (e) {
+    function pointerDown(event) {
+      if (revealed) return;
+      event.preventDefault();
       scratching = true;
-      scratchCanvas.setPointerCapture(e.pointerId);
-      scratchAt(e);
-    });
-    scratchCanvas.addEventListener("pointermove", function (e) {
-      if (!scratching) return;
-      scratchAt(e);
-      checkScratch();
-    });
-    scratchCanvas.addEventListener("pointerup", function () {
-      scratching = false;
-      checkScratch();
-    });
-    scratchCanvas.addEventListener("pointercancel", function () { scratching = false; });
+      if (scratchCanvas.setPointerCapture) {
+        try { scratchCanvas.setPointerCapture(event.pointerId); } catch (_) {}
+      }
+      scratchAt(event);
+      checkScratch(true);
+    }
 
+    function pointerMove(event) {
+      if (!scratching || revealed) return;
+      event.preventDefault();
+      scratchAt(event);
+      checkScratch(false);
+    }
+
+    function pointerUp(event) {
+      if (!scratching) return;
+      event.preventDefault();
+      scratching = false;
+      checkScratch(true);
+      if (scratchCanvas.releasePointerCapture && event.pointerId != null) {
+        try { scratchCanvas.releasePointerCapture(event.pointerId); } catch (_) {}
+      }
+    }
+
+    scratchCanvas.addEventListener("pointerdown", pointerDown, { passive: false });
+    scratchCanvas.addEventListener("pointermove", pointerMove, { passive: false });
+    scratchCanvas.addEventListener("pointerup", pointerUp, { passive: false });
+    scratchCanvas.addEventListener("pointercancel", pointerUp, { passive: false });
+    scratchCanvas.addEventListener("lostpointercapture", function () {
+      scratching = false;
+    });
+
+    // Rebuild the foil layer if the viewport changes orientation/size.
     window.addEventListener("resize", sizeScratchCanvas);
-    sizeScratchCanvas();
+    if (window.ResizeObserver) {
+      const observer = new ResizeObserver(sizeScratchCanvas);
+      observer.observe(scratchCard);
+    }
+
+    // The main invitation can initially be transparent, so wait until the
+    // browser has painted once before sizing the interactive canvas.
+    requestAnimationFrame(function () {
+      sizeScratchCanvas();
+      requestAnimationFrame(sizeScratchCanvas);
+    });
   }
 
   function createRevealBurst() {
