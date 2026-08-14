@@ -64,6 +64,28 @@
 
 
   <!-- =========================================================
+       INITIAL CURTAIN GATE
+       ========================================================= -->
+
+  <section class="mn-curtain-gate" id="mn-curtain-gate" aria-label="Wedding invitation opening">
+    <div class="mn-gate-curtain mn-gate-curtain-left" aria-hidden="true"></div>
+    <div class="mn-gate-curtain mn-gate-curtain-right" aria-hidden="true"></div>
+    <div class="mn-gate-rod" aria-hidden="true"></div>
+    <div class="mn-gate-glow" aria-hidden="true"></div>
+
+    <div class="mn-gate-center">
+      <span class="mn-gate-eyebrow">A MIDNIGHT NIKAH</span>
+      <div class="mn-gate-emblem">☾</div>
+      <button class="mn-gate-button" id="mn-gate-button" type="button">
+        <span>OPEN INVITATION</span>
+        <i>✦</i>
+      </button>
+      <small>Tap to enter</small>
+    </div>
+  </section>
+
+
+  <!-- =========================================================
        OPENING SCREEN
        ========================================================= -->
 
@@ -106,10 +128,6 @@
         <span>&amp;</span>
         Romaisa
       </h1>
-
-      <p class="mn-opening-date">
-        22 September 2026
-      </p>
 
       <button
         class="mn-open-button"
@@ -321,7 +339,7 @@
 
 
     <!-- CEREMONY -->
-    <section class="mn-section mn-ceremony">
+    <section class="mn-section mn-ceremony" id="mn-ceremony">
 
       <div class="mn-section-number">
         03
@@ -332,71 +350,9 @@
         <i></i>
       </div>
 
-      <div class="mn-date-display">
-
-        <p class="mn-date-month">
-          SEPTEMBER
-        </p>
-
-        <strong>
-          22
-        </strong>
-
-        <p class="mn-date-year">
-          2026
-        </p>
-
-      </div>
-
-      <div class="mn-ceremony-details">
-
-        <div class="mn-detail">
-          <span class="mn-detail-icon">◷</span>
-          <div>
-            <small>TIME</small>
-            <strong>2:00 PM</strong>
-          </div>
-        </div>
-
-        <div class="mn-detail">
-          <span class="mn-detail-icon">⌖</span>
-          <div>
-            <small>VENUE</small>
-            <strong>House No. 34</strong>
-            <p>
-              Nawab Bagh, Baghwanpora,<br>
-              Lal Bazar, Srinagar
-            </p>
-          </div>
-        </div>
-
-      </div>
-
-      <a
-        class="mn-map-button"
-        href="https://maps.app.goo.gl/KbzGdw58bQK8wZfm9"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <span>⌖</span>
-        Open Location in Maps
-      </a>
-
-    </section>
-
-
-    <!-- SCRATCH TO REVEAL -->
-    <section class="mn-section mn-scratch-section">
-
-      <div class="mn-section-number">04</div>
-
-      <div class="mn-section-heading">
-        <span>ONE LITTLE SURPRISE</span>
-        <i></i>
-      </div>
-
+      <!-- Date is deliberately hidden behind the scratch reveal. -->
       <p class="mn-scratch-intro">
-        Scratch the card gently to reveal our wedding date.
+        A little secret awaits. Scratch the gold card to reveal our special date.
       </p>
 
       <div class="mn-scratch-card" id="mn-scratch-card">
@@ -415,11 +371,43 @@
         </div>
       </div>
 
+      <div class="mn-after-date" id="mn-after-date">
+        <div class="mn-date-display">
+          <p class="mn-date-month">SEPTEMBER</p>
+          <strong>22</strong>
+          <p class="mn-date-year">2026</p>
+        </div>
+
+        <div class="mn-ceremony-details">
+          <div class="mn-detail">
+            <span class="mn-detail-icon">◷</span>
+            <div>
+              <small>TIME</small>
+              <strong>2:00 PM</strong>
+            </div>
+          </div>
+
+          <div class="mn-detail">
+            <span class="mn-detail-icon">⌖</span>
+            <div>
+              <small>VENUE</small>
+              <strong>House No. 34</strong>
+              <p>Nawab Bagh, Baghwanpora,<br>Lal Bazar, Srinagar</p>
+            </div>
+          </div>
+        </div>
+
+        <a class="mn-map-button" href="https://maps.app.goo.gl/KbzGdw58bQK8wZfm9" target="_blank" rel="noopener noreferrer">
+          <span>⌖</span>
+          Open Location in Maps
+        </a>
+      </div>
+
     </section>
 
 
     <!-- COUNTDOWN -->
-    <section class="mn-section mn-countdown-section">
+    <section class="mn-section mn-countdown-section mn-after-date" id="mn-countdown-section">
 
       <div class="mn-section-number">
         05
@@ -537,7 +525,7 @@
         Romaisa
       </h2>
 
-      <p class="mn-closing-date">
+      <p class="mn-closing-date mn-after-date">
         22 September 2026
       </p>
 

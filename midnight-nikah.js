@@ -26,71 +26,68 @@
 
 
   /* ==========================================================
-     OPEN INVITATION
+     TWO-STAGE OPENING
      ========================================================== */
 
+  const curtainGate = document.getElementById("mn-curtain-gate");
+  const gateButton = document.getElementById("mn-gate-button");
+
   let invitationOpened = false;
+  let gateOpened = false;
+
+  function startFloralRain() {
+    if (floralStarted) return;
+    floralStarted = true;
+    for (let i = 0; i < 45; i++) {
+      window.setTimeout(createFloatingItem, i * 75);
+    }
+    window.setInterval(createFloatingItem, 260);
+  }
+
+  function openCurtainGate() {
+    if (gateOpened) return;
+    gateOpened = true;
+    document.body.classList.remove("mn-is-opening");
+    curtainGate.classList.add("is-open");
+    document.body.classList.add("mn-floral-active");
+    startFloralRain();
+
+    window.setTimeout(function () {
+      curtainGate.classList.add("is-gone");
+    }, 1900);
+  }
+
+  if (gateButton) gateButton.addEventListener("click", openCurtainGate);
 
   function openInvitation() {
-
-    if (invitationOpened) {
-      return;
-    }
-
+    if (invitationOpened) return;
     invitationOpened = true;
 
-    document.body.classList.remove("mn-is-opening");
-
     opening.classList.add("is-hidden");
+    document.body.classList.add("mn-invitation-opened");
 
     window.setTimeout(function () {
       main.classList.add("is-visible");
       musicButton.classList.add("is-visible");
-
-      window.scrollTo({
-        top: 0,
-        behavior: "auto"
-      });
-    }, 450);
-
-
-    /* Try to start music.
-
-       Browsers may still block autoplay. The user has
-       already interacted with the page, so this normally
-       provides the best chance of successful playback.
-    */
+      window.scrollTo({ top: 0, behavior: "auto" });
+    }, 650);
 
     if (audio && audio.querySelector("source")) {
-
       audio.volume = 0;
       audio.currentTime = 0;
-
       const playPromise = audio.play();
-
       if (playPromise && typeof playPromise.catch === "function") {
-
-        playPromise
-          .then(function () {
-            musicButton.classList.add("is-playing");
-            fadeAudioIn(audio, 3500, 0.55);
-          })
-          .catch(function () {
-            /* Browser blocked playback. */
-          });
-
+        playPromise.then(function () {
+          musicPlaying = true;
+          musicButton.classList.add("is-playing");
+          musicButton.textContent = "♫";
+          fadeAudioIn(audio, 3500, 0.55);
+        }).catch(function () {});
       }
     }
   }
 
-
-  if (openButton) {
-    openButton.addEventListener(
-      "click",
-      openInvitation
-    );
-  }
-
+  if (openButton) openButton.addEventListener("click", openInvitation);
 
   /* ==========================================================
      COUNTDOWN
@@ -312,7 +309,7 @@
 
 
   /* ==========================================================
-     CINEMATIC REVEAL + FLORAL RAIN
+     CINEMATIC FLORAL + HEART RAIN
      ========================================================== */
 
   function fadeAudioIn(element, duration, target) {
@@ -325,48 +322,25 @@
     requestAnimationFrame(step);
   }
 
-  function createPetal() {
+  let floralStarted = false;
+
+  function createFloatingItem() {
     const field = document.getElementById("mn-petal-field");
     if (!field) return;
-    const petal = document.createElement("span");
-    const types = ["petal", "rose", "leaf", "spark"];
+    const item = document.createElement("span");
+    const types = ["petal", "petal", "rose", "leaf", "heart", "heart", "spark"];
     const type = types[Math.floor(Math.random() * types.length)];
-    petal.className = "mn-floating-item mn-floating-" + type;
-    petal.style.left = (Math.random() * 100) + "vw";
-    petal.style.setProperty("--fall-duration", (7 + Math.random() * 8) + "s");
-    petal.style.setProperty("--drift", (-80 + Math.random() * 160) + "px");
-    petal.style.setProperty("--spin", (-240 + Math.random() * 480) + "deg");
-    petal.style.setProperty("--delay", (Math.random() * 1.5) + "s");
-    petal.style.setProperty("--size", (7 + Math.random() * 10) + "px");
-    field.appendChild(petal);
-    window.setTimeout(function () { petal.remove(); }, 17000);
+    item.className = "mn-floating-item mn-floating-" + type;
+    item.style.left = (Math.random() * 100) + "vw";
+    item.style.setProperty("--fall-duration", (6 + Math.random() * 8) + "s");
+    item.style.setProperty("--drift", (-100 + Math.random() * 200) + "px");
+    item.style.setProperty("--spin", (-360 + Math.random() * 720) + "deg");
+    item.style.setProperty("--delay", (Math.random() * .7) + "s");
+    item.style.setProperty("--size", (7 + Math.random() * 12) + "px");
+    if (type === "heart") item.textContent = Math.random() > .5 ? "♥" : "♡";
+    field.appendChild(item);
+    window.setTimeout(function () { item.remove(); }, 16000);
   }
-
-  let floralStarted = false;
-  function startFloralRain() {
-    if (floralStarted) return;
-    floralStarted = true;
-    for (let i = 0; i < 28; i++) {
-      window.setTimeout(createPetal, i * 110);
-    }
-    window.setInterval(createPetal, 420);
-  }
-
-  /* Curtain reveal begins on the user's tap. */
-  function cinematicReveal() {
-    if (opening) opening.classList.add("mn-curtain-opening");
-    window.setTimeout(startFloralRain, 650);
-    window.setTimeout(function () {
-      document.body.classList.add("mn-floral-active");
-    }, 900);
-  }
-
-  /* Hook into the existing opening handler without replacing it. */
-  const originalOpenButton = openButton;
-  if (originalOpenButton) {
-    originalOpenButton.addEventListener("click", cinematicReveal, { once: true });
-  }
-
 
   /* ==========================================================
      SCRATCH TO REVEAL
@@ -423,6 +397,8 @@
       if (transparent / total > 0.48) {
         revealed = true;
         scratchCard.classList.add("is-revealed");
+        document.body.classList.add("mn-date-unlocked");
+        createRevealBurst();
       }
     }
 
@@ -444,6 +420,22 @@
 
     window.addEventListener("resize", sizeScratchCanvas);
     sizeScratchCanvas();
+  }
+
+  function createRevealBurst() {
+    const field = document.getElementById("mn-petal-field");
+    if (!field) return;
+    for (let i = 0; i < 26; i++) {
+      const item = document.createElement("span");
+      item.className = "mn-reveal-heart";
+      item.textContent = i % 2 ? "♥" : "✦";
+      item.style.left = "50%";
+      item.style.top = "50%";
+      item.style.setProperty("--burst-x", (-180 + Math.random() * 360) + "px");
+      item.style.setProperty("--burst-y", (-130 + Math.random() * 260) + "px");
+      field.appendChild(item);
+      window.setTimeout(function () { item.remove(); }, 1500);
+    }
   }
 
   /* ==========================================================
